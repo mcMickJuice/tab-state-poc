@@ -1,65 +1,77 @@
-import { TabState, Tab } from './types'
+import { FocusState, OpenState, Tab } from "./types";
 
-const TABS_KEY = 'poc_tabs_key'
+const TABS_KEY = "poc_tabs_key";
 
-export function clearTabStorage() {
-  localStorage.removeItem(TABS_KEY)
+export function clearClosedTabsFromStorage() {
+  const tabs = getTabsFromStorage();
+  const openedTabs = tabs.filter((t) => t.openState === "opened");
+  localStorage.setItem(TABS_KEY, JSON.stringify(openedTabs));
 }
 
-export function updateTabState(tabId: string, state: TabState): void {
-  const currentTabs = getTabs()
+export function updateTabStateInStorage(
+  tabId: string,
+  focusState: FocusState,
+  openState: OpenState
+): void {
+  const currentTabs = getTabsFromStorage();
 
-  const currentDate = new Date()
+  const currentDate = new Date();
   const newTabs = currentTabs.map((t) => {
-    if (t.tabId !== tabId) return t
+    if (t.tabId !== tabId) return t;
 
     return {
       ...t,
-      currentState: state,
-      lastChangeTime: currentDate
-    }
-  })
+      focusState,
+      openState,
+      lastChangeTime: currentDate,
+    };
+  });
 
-  updateTabsStateInStorage(newTabs)
+  updateTabsStateInStorage(newTabs);
 }
 
-export function createNewTab(tabId: string, state: TabState): void {
-  const currentDate = new Date()
+export function createNewTabInStorage(
+  tabId: string,
+  emoji: string,
+  focusState: FocusState,
+  openState: OpenState
+): void {
+  const currentDate = new Date();
   const newTab: Tab = {
     tabId,
-    currentState: state,
-    lastChangeTime: currentDate
-  }
+    emoji,
+    focusState,
+    openState,
+    lastChangeTime: currentDate,
+  };
 
-  const currentTabs = getTabs()
-  const newTabs = [...currentTabs, newTab]
-  updateTabsStateInStorage(newTabs)
+  const currentTabs = getTabsFromStorage();
+  const newTabs = [...currentTabs, newTab];
+  updateTabsStateInStorage(newTabs);
 }
 
-export function getTabs(): Tab[] {
-  const value = localStorage.getItem(TABS_KEY)
+export function getTabsFromStorage(): Tab[] {
+  const value = localStorage.getItem(TABS_KEY);
 
-  if (value == null) return []
+  if (value == null) return [];
 
-  const tabs = JSON.parse(value) as Tab[]
+  const tabs = JSON.parse(value) as Tab[];
 
-  return tabs
+  return tabs;
 }
 
 export function subscribeToTabsChange(cb: (tabs: Tab[]) => void): () => void {
   function handler() {
-    console.log('storage has changed')
-    const tabs = getTabs()
-    console.log('new tab state', tabs)
-    cb(tabs)
+    const tabs = getTabsFromStorage();
+    cb(tabs);
   }
-  window.addEventListener('storage', handler)
+  window.addEventListener("storage", handler);
 
   return () => {
-    window.removeEventListener('storage', handler)
-  }
+    window.removeEventListener("storage", handler);
+  };
 }
 
 function updateTabsStateInStorage(tabs: Tab[]) {
-  localStorage.setItem(TABS_KEY, JSON.stringify(tabs))
+  localStorage.setItem(TABS_KEY, JSON.stringify(tabs));
 }

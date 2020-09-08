@@ -1,7 +1,10 @@
-export type TabState = 'focused' | 'closed' | 'blurred'
+export type FocusState = "focused" | "blurred";
+export type OpenState = "opened" | "closed";
 
 export interface Tab {
-  tabId: string
-  currentState: TabState
-  lastChangeTime: Date
+  emoji: string;
+  tabId: string;
+  focusState: FocusState;
+  openState: OpenState;
+  lastChangeTime: Date;
 }
